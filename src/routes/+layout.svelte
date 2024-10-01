@@ -3,8 +3,8 @@
 </script>
 
 <nav>
-	<a href="/">home</a>
-	<a href="/adwood">adwood machine</a>
+	<a href="/">Информация</a>
+	<a href="/adwood">Машина атвуда</a>
 </nav>
 
 <slot></slot>

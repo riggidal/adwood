@@ -10,18 +10,22 @@
 	// Configurable height of the rod and the pulley system
 	let rodHeight = 0.4; // Default height of the rod (adjustable)
 
+	let k_pos = 635;
 	// Initial positions of the blocks (assuming middle position is 100)
 	let pos_left = rodHeight * 10000 + 40; // Position of the left block (mass1)
 	let pos_right = 40; // Position of the right block (mass2 + overload)
 
 	// Initial velocities of the blocks
-	let velocity_left = 0;
-	let velocity_right = 0;
+	let velocity_left = 0.0;
+	let velocity_right = 0.0;
 
 	// Time-related variables
 	let previousTime = 0;
 	let dt = 0; // Delta time for frame update
 
+	let mark_timer_pos = 0.2 * 1000;
+	let timer = 0;
+	let isTimer = false;
 	resetAnimation();
 	// Function to calculate the acceleration and tension
 	function calculatePhysics() {
@@ -31,8 +35,11 @@
 		acceleration = (overload * g) / (2 * mass_block + overload);
 	}
 
+	let single_segment = 0.01;
+	let mark_segment = 0.05;
 	// Function to start the animation
 	function startAnimation() {
+		resetAnimation();
 		isAnimating = true;
 		calculatePhysics(); // Calculate the acceleration and tension
 
@@ -43,15 +50,29 @@
 		requestAnimationFrame(updatePositions);
 	}
 
+	function getRodHeightNormalize() {
+		return rodHeight * 1000 + 105;
+	}
+
 	// Function to reset the animation to its initial state
 	function resetAnimation() {
 		isAnimating = false;
-		pos_left = rodHeight * 1000 - 70;
-		pos_right = 70;
+		isTimer = false;
+		pos_left = getRodHeightNormalize() + 50;
+		pos_right = 65 + overload * 2000;
 		velocity_left = 0;
 		velocity_right = 0;
+		acceleration = 0;
+		timer = 0;
 	}
 
+	function handleClick(event) {
+		const element = event.currentTarget; // Get the clicked element
+		const rect = element.getBoundingClientRect(); // Get its position
+
+		// Update the position state
+		mark_timer_pos = rect.top - 75;
+	}
 	// Function to update the positions and velocities of both blocks
 	function updatePositions() {
 		if (!isAnimating) return;
@@ -66,15 +87,23 @@
 		velocity_right += acceleration * dt; // Right block moves downwards
 
 		// Update positions based on velocities
-		pos_left += velocity_left * dt * 5000; // Multiply by 100 to scale movement for visualization
-		pos_right += velocity_right * dt * 5000;
+		let pos_left_sum = velocity_left * dt + 0.5 * -acceleration * (dt * dt); // Left block position update
+		let pos_right_sum = velocity_right * dt + 0.5 * acceleration * (dt * dt); // Right block position update
+
+		pos_left += pos_left_sum * k_pos;
+		pos_right += pos_right_sum * k_pos;
 
 		// Check if the right block (with overload) hits the ground
-		if (pos_right >= rodHeight * 1000 - 40) {
-			// Assume ground is at position 200
-			// pos_right = rodHeight * 1000; // Snap to ground
-			// pos_left = 40; // The left block will reach its topmost position
+		if (pos_right >= getRodHeightNormalize() + 50) {
 			isAnimating = false; // Stop the animation
+			isTimer = false;
+		}
+
+		if (pos_right - 40 >= mark_timer_pos) {
+			isTimer = true;
+		}
+		if (isTimer) {
+			timer += dt;
 		}
 
 		// Continue the animation if it's still running
@@ -85,11 +114,10 @@
 </script>
 
 <div class="container">
-	<h1>Atwood's Machine with Overload</h1>
-
-	<div class="atwood-machine" style="height: {rodHeight * 1000 + 40}px;">
+	<div class="atwood-machine" style="height: {rodHeight * 1000 + 255}px;">
 		<!-- Rod (top bar) -->
 		<div class="rod"></div>
+		<div class="timer">{timer.toFixed(2)} c</div>
 
 		<!-- Pulley (round circle) -->
 		<div class="pulley"></div>
@@ -104,7 +132,9 @@
 		<!-- Mass 2 (right block with overload) -->
 		<div
 			class="mass overload"
-			style="height: {overload * 2000}px; top: {pos_right - overload * 2000}px; left: 158px;"
+			style="height: {overload * 2000}px; top: {isTimer
+				? mark_timer_pos - overload * 2000 + 40
+				: pos_right - overload * 2000}px; left: 158px;"
 		>
 			{overload.toFixed(3)}
 		</div>
@@ -112,13 +142,21 @@
 			{(mass_block + overload).toFixed(3)}
 		</div>
 
+		<div style="top: {mark_timer_pos + 37}px;" class="mark_position_stop_overload"></div>
+
 		<!-- Ruler on the side of the Atwood machine -->
-		<div class="ruler">
+		<div class="ruler" style="height: {rodHeight * 1000 + 120}px;">
 			<!-- Create markers and labels for the ruler based on rodHeight -->
-			{#each Array(rodHeight * 100 + 1) as _, i}
-				<div style="top: calc({rodHeight}px - {(i * rodHeight) / (rodHeight * 100)}px);">
-					<div class="ruler-line"></div>
-					<div>{((i * rodHeight) / (rodHeight * 100)).toFixed(2)}</div>
+			{#each Array(rodHeight / single_segment + 1) as _, i}
+				<div>
+					<div class="text-dash" on:click={handleClick}>
+						{#if i % (rodHeight / single_segment / (rodHeight / mark_segment)) === 0}
+							{(
+								(i / (rodHeight / single_segment / (rodHeight / mark_segment))) *
+								mark_segment
+							).toFixed(2)}
+						{/if}
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -131,7 +169,8 @@
 				<input
 					type="number"
 					bind:value={mass_block}
-					min="0"
+					min="0.01"
+					max="1"
 					step="0.01"
 					placeholder="Enter Mass Block"
 				/>
@@ -143,6 +182,7 @@
 				<input
 					type="number"
 					bind:value={overload}
+					on:change={resetAnimation}
 					min="0.001"
 					max="0.02"
 					step="0.001"
