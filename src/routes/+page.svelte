@@ -55,6 +55,15 @@
 		return rodHeight * 1000 + 105;
 	}
 
+	// функция для добавления погрешности к значению
+	// num - значение
+	// rate - процент ошибки
+	function getErrorRateValue(num, rate) {
+		let errorAmount = num * (rate / 100); // вычисляем значение погрешности к числу
+
+		return num + (Math.random() < 0.5 ? -errorAmount : errorAmount); // Случайно либо прибавляем погрешность или вычитаем
+	}
+
 	// Функция для сброса всех значений на значения по умолчанию
 	function resetAnimation() {
 		isAnimating = false;
@@ -107,6 +116,8 @@
 			// Если достуг то отключаем тригеры анимации и таймера
 			isAnimating = false;
 			isTimer = false;
+
+			timer = getErrorRateValue(timer, 2); // время с погрешностью 2%
 		}
 
 		// Проверяем не достиг ли блок начала запуска таймера
