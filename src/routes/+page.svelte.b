@@ -1,5 +1,5 @@
 <script>
-	// import './style.css'; // Импорт стилей отображения машины Атвуда
+	import './style.css'; // Импорт стилей отображения машины Атвуда
 
 	let mass_block = 0.09; // Масса блоков
 	let overload = 0.001; // Масса перегрузка
@@ -140,118 +140,116 @@
 </script>
 
 <!-- HTML интерфейс -->
+<div class="container">
+	<div class="atwood-machine" style="height: {rodHeight * 1000 + 255}px;">
+		<!-- Установка -->
+		<div class="rod"></div>
+		<!-- Положение таймера  -->
+		<div class="timer">{timer.toFixed(2)} c</div>
 
-<style>
-	body {
-		margin: 0;
-		padding: 0;
-		background: url('/bg.jpg') no-repeat center center fixed;
-		background-size: cover;
-		font-family: Arial, sans-serif;
-		color: #333;
-	}
+		<!-- Шкив -->
+		<div class="pulley"></div>
 
-	.container {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		padding: 20px;
-		height: 100vh;
-	}
+		<!-- Веревка связывающие 2 блока -->
+		<!-- Автоматически изменяют свои размеры как будто они связаны с блоками -->
+		<div class="rope" style="left: 120px; height: {pos_left + 5}px;"></div>
+		<div class="rope" style="left: 175px; height: {pos_right + 5}px;"></div>
 
-	.simulation {
-		position: relative;
-		flex: 2;
-		border: 1px solid #ccc;
-		border-radius: 10px;
-		background-color: rgba(255, 255, 255, 0);
-		padding: 10px;
-		height: calc(100% - 40px);
-	}
+		<!-- Первый блок -->
+		<!-- Изменияем позицию при перемещении -->
+		<div class="mass" style="top: {pos_left}px; left: 102px;">{mass_block.toFixed(3)}</div>
 
-	.controls {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 1%;
-		padding: 2%;
-		background: rgba(255, 255, 255, 0);
-		border-radius: 10px;
-	}
-
-	.controls img {
-		width: 75%;
-		cursor: pointer;
-	}
-
-	img.tower {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		height: 50%;
-	}
-
-	img.bags {
-		position: absolute;
-		top: 4%;
-		left: 50%;
-		transform: translateX(-50%);
-		height: 25%;
-	}
-
-	img.ground {
-		position: absolute;
-		bottom: 0;
-		height: 8%;
-		max-height: 80px;
-		width: 100%;
-	}
-
-	img.line {
-		position: absolute;
-		right: 0;
-		top: 0;
-		width: 5%;
-		height: 100%;
-		cursor: pointer;
-	}
-
-	img.rook {
-		position: absolute;
-		transform: translate(-50%, -50%);
-		width: 5%;
-		max-width: 50px;
-	}
-
-	img.done {
-		position: absolute;
-		top: 22.75%;
-		left: 50%;
-		transform: translateX(-50%);
-		height: 10%;
-	}
-</style>
-
-<body>
-	<div class="container">
-		<!-- Simulation Section -->
-		<div class="simulation">
-			<img src="/tower.png" alt="Tower" class="tower" />
-			<div>
-				<img src="/bags.png" alt="Bags" class="bags" />
-				<img src="/done.png" alt="Done" class="done" />
-			</div>
-			<img src="/ground.png" alt="Ground" class="ground" />
-			<img src="/line.jpg" alt="Line" class="line" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: 10%;" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="right: 20%; top: 10%;" />
+		<!-- Перегрузок -->
+		<!-- При достижении позиции начало таймера перегрузок останавливается -->
+		<div
+			class="mass overload"
+			style="height: {overload * 2000}px; top: {isTimer
+				? mark_timer_pos - overload * 2000 + 40
+				: pos_right - overload * 2000}px; left: 158px;"
+		>
+			{overload.toFixed(3)}
 		</div>
 
-		<!-- Controls Section -->
-		<div class="controls">
-			<img src="/start.png" alt="Start Button" class="control-btn" />
-			<img src="/reset.png" alt="Reset Button" class="control-btn" />
+		<!-- Второй блок -->
+		<!-- Изменияем позицию при перемещении -->
+		<div class="mass" style="top: {pos_right}px; left: 158px;">
+			{(mass_block + overload).toFixed(3)}
+		</div>
+
+		<!-- Объект пометка для начала отсчета таймера -->
+		<div style="top: {mark_timer_pos + 37}px;" class="mark_position_stop_overload"></div>
+
+		<!-- Линейка справа от установки -->
+		<!-- Автоматически изменят свою высоту подстраиваясь под установку -->
+		<div class="ruler" style="height: {rodHeight * 1000 + 120}px;">
+			<!-- Добавляем элементы и надписи для линейки -->
+			<!-- Для этого мы проходим циклом -->
+			<!-- Количесвво элементов линейки мы считаем по формулу: высота установки / самый маленькая единица линейки -->
+			{#each Array(rodHeight / single_segment + 1) as _, i}
+				<div>
+					<!-- При нажатии на элемент линейки мы вызываем обработчик для обновлении позиции начала таймера -->
+					<div class="text-dash" on:click={handleClick}>
+						<!-- Если у нас текущий элемент списка делится без остатка на единицу для отображения метки  -->
+						<!-- то создаем элемент с надписью текущий высоты линеки -->
+						<!-- если делится с остатком то создаем просто пометку линейки -->
+						{#if i % (rodHeight / single_segment / (rodHeight / mark_segment)) === 0}
+							{(
+								(i / (rodHeight / single_segment / (rodHeight / mark_segment))) *
+								mark_segment
+							).toFixed(2)}
+						{/if}
+					</div>
+				</div>
+			{/each}
 		</div>
 	</div>
-</body>
+
+	<!-- Элементы для параметризации установки -->
+	<div class="controls">
+		<div class="input-field">
+			<label>
+				Масса блоков (кг):
+				<input
+					type="number"
+					bind:value={mass_block}
+					min="0.01"
+					max="1"
+					step="0.01"
+					placeholder="Введите массу блоков (минимум 0.01 и максимум 1)"
+				/>
+			</label>
+		</div>
+		<div class="input-field">
+			<label
+				>Масса перегрузка (кг):
+				<input
+					type="number"
+					bind:value={overload}
+					on:change={resetAnimation}
+					min="0.001"
+					max="0.02"
+					step="0.001"
+					placeholder="Введите массу перегрузка (минимум 0.001 и максимум 0.02)"
+				/>
+			</label>
+		</div>
+		<div class="input-field">
+			<label
+				>Высота (м):
+				<input
+					type="number"
+					bind:value={rodHeight}
+					min="0.4"
+					on:change={resetAnimation}
+					step="0.01"
+					placeholder="Введите высоту установки"
+				/>
+			</label>
+		</div>
+		<div>
+			<!-- Кнопки для запуска и сброса установки -->
+			<button on:click={startAnimation}>Начать симуляцию</button>
+			<button on:click={resetAnimation}>Сбросить</button>
+		</div>
+	</div>
+</div>
