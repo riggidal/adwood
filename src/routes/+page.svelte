@@ -186,10 +186,10 @@
 
 	img.tower {
 		position: absolute;
-		top: 50%;
+		top: 60%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		height: 50%;
+		height: 75%;
 	}
 
 	img.bags {
@@ -197,23 +197,30 @@
 		top: 4%;
 		left: 50%;
 		transform: translateX(-50%);
-		height: 25%;
+		height: 30%;
 	}
 
 	img.ground {
 		position: absolute;
 		bottom: 0;
-		height: 8%;
-		max-height: 80px;
-		width: 100%;
+		height: 6%;
+		width: 15%;
+	}
+
+	#ground-1 {
+		left: 12%;
+	}
+
+	#ground-2 {
+		left: 75%;
 	}
 
 	img.line {
 		position: absolute;
 		right: 0;
-		top: 0;
+		top: 25%;
 		width: 5%;
-		height: 100%;
+		height: 75%;
 		cursor: pointer;
 	}
 
@@ -226,7 +233,7 @@
 
 	img.done {
 		position: absolute;
-		top: 22.75%;
+		top: 25%;
 		left: 50%;
 		transform: translateX(-50%);
 		height: 10%;
@@ -242,10 +249,11 @@
 				<img src="/bags.png" alt="Bags" class="bags" />
 				<img src="/done.png" alt="Done" class="done" />
 			</div>
-			<img src="/ground.png" alt="Ground" class="ground" />
 			<img src="/line.jpg" alt="Line" class="line" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: 10%;" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="right: 20%; top: 10%;" />
+			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: 5%;" />
+			<img src="/ground.png" alt="Ground" class="ground" id="ground-1" style="bottom: 0%;" />
+			<img src="/rook.png" alt="Carrot" class="rook" style="right: 12%; top: 10%;" />
+			<img src="/ground.png" alt="Ground" class="ground" id="ground-2" style="top: 15%;" />
 		</div>
 
 		<!-- Controls Section -->
