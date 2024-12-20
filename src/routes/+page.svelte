@@ -59,7 +59,8 @@
 	// num - значение
 	// rate - процент ошибки
 	function getErrorRateValue(num, rate) {
-		let errorAmount = num * (rate / 100); // вычисляем значение погрешности к числу
+		let errorAmountValue = num * (rate / 100); // вычисляем значение погрешности к числу
+		let errorAmount = errorAmountValue + Math.random() * (errorAmountValue / 2);
 
 		return num + (Math.random() < 0.5 ? -errorAmount : errorAmount); // Случайно либо прибавляем погрешность или вычитаем
 	}
