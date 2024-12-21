@@ -1,5 +1,31 @@
 <script>
-	// import './style.css'; // Импорт стилей отображения машины Атвуда
+	import './style.css'; // Импорт стилей отображения машины Атвуда
+
+	import { onMount } from 'svelte';
+
+	let mark_timer_pos = 0; // Позиция маркера на линейке для начала запуска таймера
+	let mark_timer_pos_element = 140;
+	let mark_offset = 0;
+
+	// Function to handle click events on the ruler
+	function handleRulerClick(event) {
+		const ruler = event.target;
+		const rect = ruler.getBoundingClientRect();
+		mark_timer_pos = (event.clientY - mark_offset) / 20;
+		mark_timer_pos_element = event.clientY;
+		console.log(`Mark set at height: ${mark_timer_pos}px`);
+		console.log(`Mark set at height pos: ${mark_timer_pos_element}px`);
+	}
+
+	onMount(() => {
+    const carrotElement = document.querySelector('#carrot');
+    if (carrotElement) {
+      const rect = carrotElement.getBoundingClientRect();
+      console.log(`Carrot position: x=${rect.x}, y=${rect.y}`);
+	  mark_offset = rect.y + 66;
+    }
+  });
+
 
 	let mass_block = 0.09; // Масса блоков
 	let overload = 0.001; // Масса перегрузка
@@ -7,9 +33,9 @@
 	let acceleration = 0; // ускорение
 	let isAnimating = false; // триггер для анимации
 
-	let rodHeight = 0.4; // высота установки атвуда
+	let rodHeight = 0.3; // высота установки атвуда
 
-	let k_pos = 550; // коэфициент для перевода системы движения используя пиксели
+	let k_pos = 145; // коэфициент для перевода системы движения используя пиксели
 	let pos_left = 0; // Позиция левого блока
 	let pos_right = 0; // Позиция правого блока с перегрузком
 
@@ -20,7 +46,7 @@
 	let previousTime = 0; // Сохраняем предыдущее состояние времени
 	let dt = 0; // Изменение времени для обновления кадра (чтобы не быть привязанным к количеству обновления кадров в секунду)
 
-	let mark_timer_pos = 0.2 * 1000; // Позиция маркера на линейке для начала запуска таймера
+	// let mark_timer_pos = 0.2 * 1000; // Позиция маркера на линейке для начала запуска таймера
 	let timer = 0; // храним количество секунд таймера
 	let isTimer = false; // триггер для изменения таймера
 
@@ -30,6 +56,7 @@
 	function calculatePhysics() {
 		if (mass_block <= 0 || overload <= 0) return; // Проверяем на нулевое значение масс
 
+		g = getErrorRateValue(g, 2);
 		// Расчитываем ускорение блока используя второй закон Ньютона
 		acceleration = (overload * g) / (2 * mass_block + overload);
 	}
@@ -39,6 +66,7 @@
 
 	// Функция начала анимации движения
 	function startAnimation() {
+		console.log("Start")
 		resetAnimation(); // Сбрасываем позиции блоков
 		isAnimating = true; // Отмечаем триггер анимации
 		calculatePhysics(); // Расчитываем ускорение для блока
@@ -69,22 +97,14 @@
 	function resetAnimation() {
 		isAnimating = false;
 		isTimer = false;
-		pos_left = getRodHeightNormalize() + 50;
-		pos_right = 65 + overload * 2000;
+		pos_left = 0;
+		pos_right = 0;
 		velocity_left = 0;
 		velocity_right = 0;
 		acceleration = 0;
 		timer = 0;
 	}
 
-	// Функция для обработки нажатия на линейку
-	function handleClick(event) {
-		const element = event.currentTarget; // Получаем элемент на который нажали
-		const rect = element.getBoundingClientRect(); // Получаем его позицию
-
-		// Обновляем позицию маркера для запуска таймера (50 px это отступ сверху)
-		mark_timer_pos = rect.top - 50;
-	}
 	// Функция для обновления позиции и скоростей блоков
 	function updatePositions() {
 		if (!isAnimating) return; // Если анимация не запущена ничего не делаем
@@ -113,16 +133,15 @@
 
 		// Проверяем не достиг ли блок конца установки
 		// 50px это отступ сверху
-		if (pos_right >= getRodHeightNormalize() + 50) {
+		if (pos_right >= 75) {
 			// Если достуг то отключаем тригеры анимации и таймера
 			isAnimating = false;
 			isTimer = false;
-
-			timer = getErrorRateValue(timer, 2); // время с погрешностью 2%
 		}
 
 		// Проверяем не достиг ли блок начала запуска таймера
-		if (pos_right - 40 >= mark_timer_pos) {
+		console.log(`check: ${(pos_right / 2.5)} -- ${mark_timer_pos}`)
+		if ((pos_right / 2.5) >= mark_timer_pos) {
 			// Если да то запускаем тригер таймера
 			isTimer = true;
 		}
@@ -137,108 +156,23 @@
 			requestAnimationFrame(updatePositions);
 		}
 	}
+
+	function addWeight() {
+		editWight(0.001);
+	}
+
+	function remWeight() {
+		editWight(-0.001);
+	}
+
+	function editWight(value) {
+		if (value > 0 && (mass_block + overload) < 0.1) { overload += value}
+		if (value < 0 && (mass_block + overload) > 0.091) { overload += value}
+	}
+
 </script>
 
 <!-- HTML интерфейс -->
-
-<style>
-	body {
-		margin: 0;
-		padding: 0;
-		background: url('/bg.jpg') no-repeat center center fixed;
-		background-size: cover;
-		font-family: Arial, sans-serif;
-		color: #333;
-	}
-
-	.container {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		padding: 20px;
-		height: 100vh;
-	}
-
-	.simulation {
-		position: relative;
-		flex: 2;
-		border: 1px solid #ccc;
-		border-radius: 10px;
-		background-color: rgba(255, 255, 255, 0);
-		padding: 10px;
-		height: calc(100% - 40px);
-	}
-
-	.controls {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 1%;
-		padding: 2%;
-		background: rgba(255, 255, 255, 0);
-		border-radius: 10px;
-	}
-
-	.controls img {
-		width: 75%;
-		cursor: pointer;
-	}
-
-	img.tower {
-		position: absolute;
-		top: 60%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		height: 75%;
-	}
-
-	img.bags {
-		position: absolute;
-		top: 4%;
-		left: 50%;
-		transform: translateX(-50%);
-		height: 30%;
-	}
-
-	img.ground {
-		position: absolute;
-		bottom: 0;
-		height: 6%;
-		width: 15%;
-	}
-
-	#ground-1 {
-		left: 12%;
-	}
-
-	#ground-2 {
-		left: 75%;
-	}
-
-	img.line {
-		position: absolute;
-		right: 0;
-		top: 25%;
-		width: 5%;
-		height: 75%;
-		cursor: pointer;
-	}
-
-	img.rook {
-		position: absolute;
-		transform: translate(-50%, -50%);
-		width: 5%;
-		max-width: 50px;
-	}
-
-	img.done {
-		position: absolute;
-		top: 25%;
-		left: 50%;
-		transform: translateX(-50%);
-		height: 10%;
-	}
-</style>
 
 <body>
 	<div class="container">
@@ -247,19 +181,45 @@
 			<img src="/tower.png" alt="Tower" class="tower" />
 			<div>
 				<img src="/bags.png" alt="Bags" class="bags" />
-				<img src="/done.png" alt="Done" class="done" />
+
+				
+				{#if isAnimating}
+					<img src="/done2.png" alt="Done" class="done" />
+				{:else}
+					<img src="/done.png" alt="Done" class="done" />
+				{/if}
 			</div>
-			<img src="/line.jpg" alt="Line" class="line" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: 5%;" />
-			<img src="/ground.png" alt="Ground" class="ground" id="ground-1" style="bottom: 0%;" />
-			<img src="/rook.png" alt="Carrot" class="rook" style="right: 12%; top: 10%;" />
-			<img src="/ground.png" alt="Ground" class="ground" id="ground-2" style="top: 15%;" />
+			<div on:click={handleRulerClick}>
+				<img src="/image.png" alt="Line" class="line" />
+			  </div>
+			<!-- <img src="/image.png" alt="Line" class="line" /> -->
+
+			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: {5 + pos_right}%;" />
+			<img src="/ground.png" alt="Ground" class="ground" id="ground-1" style="bottom: {pos_right}%;" />
+
+			<img src="/rook.png" alt="Carrot" class="rook" id="carrot" style="right: 12%; top: {10 + pos_right}%;" />
+			<img src="/ground.png" alt="Ground" class="ground" id="ground-2" style="top: {15 + pos_right}%;" />
 		</div>
 
 		<!-- Controls Section -->
 		<div class="controls">
-			<img src="/start.png" alt="Start Button" class="control-btn" />
-			<img src="/reset.png" alt="Reset Button" class="control-btn" />
+			<div class="info">
+				<label for="time-display">Время:</label>
+				<span id="time-display">{timer.toFixed(3)} c.</span>
+			</div>
+			<div class="weight-adjuster">
+				<label for="weight">Вес морковки:</label>
+				<button on:click={remWeight} class="btn-weight">-</button>
+				<span id="weight">{(mass_block + overload).toFixed(3)}</span>
+				<button on:click={addWeight} class="btn-weight">+</button>
+			</div>
+			
+			<button class="btn" on:click={startAnimation}><img src="/start.png" alt="Start Button" class="control-btn" /></button>
+			<button class="btn" on:click={resetAnimation}><img src="/reset.png" alt="Reset Button" class="control-btn" /></button>
+
 		</div>
+
+		<!-- Для тестирования -->
+		<div style="position: absolute; left: 56%; top: {mark_timer_pos_element}px; background-color: #fff; width: 50px; height: 5px;"></div>
 	</div>
 </body>
