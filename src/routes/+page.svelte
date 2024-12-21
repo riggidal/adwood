@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	import './style.css'; // Импорт стилей отображения машины Атвуда
 
 	import { onMount } from 'svelte';
@@ -178,27 +179,27 @@
 	<div class="container">
 		<!-- Simulation Section -->
 		<div class="simulation">
-			<img src="/tower.png" alt="Tower" class="tower" />
+			<img src={`${base}/tower.png`} alt="Tower" class="tower" />
 			<div>
-				<img src="/bags.png" alt="Bags" class="bags" />
+				<img src={`${base}/bags.png`} alt="Bags" class="bags" />
 
 				
 				{#if isAnimating}
-					<img src="/done2.png" alt="Done" class="done" />
+					<img src={`${base}/done2.png`} alt="Done" class="done" />
 				{:else}
-					<img src="/done.png" alt="Done" class="done" />
+					<img src={`${base}/done.png`} alt="Done" class="done" />
 				{/if}
 			</div>
 			<div on:click={handleRulerClick}>
-				<img src="/image.png" alt="Line" class="line" />
+				<img src={`${base}/image.png`} alt="Line" class="line" />
 			  </div>
 			<!-- <img src="/image.png" alt="Line" class="line" /> -->
 
-			<img src="/rook.png" alt="Carrot" class="rook" style="left: 20%; bottom: {5 + pos_right}%;" />
-			<img src="/ground.png" alt="Ground" class="ground" id="ground-1" style="bottom: {pos_right}%;" />
+			<img src={`${base}/rook.png`} alt="Carrot" class="rook" style="left: 20%; bottom: {5 + pos_right}%;" />
+			<img src={`${base}/ground.png`} alt="Ground" class="ground" id="ground-1" style="bottom: {pos_right}%;" />
 
-			<img src="/rook.png" alt="Carrot" class="rook" id="carrot" style="right: 12%; top: {10 + pos_right}%;" />
-			<img src="/ground.png" alt="Ground" class="ground" id="ground-2" style="top: {15 + pos_right}%;" />
+			<img src={`${base}/rook.png`} alt="Carrot" class="rook" id="carrot" style="right: 12%; top: {10 + pos_right}%;" />
+			<img src={`${base}/ground.png`} alt="Ground" class="ground" id="ground-2" style="top: {15 + pos_right}%;" />
 		</div>
 
 		<!-- Controls Section -->
@@ -214,8 +215,8 @@
 				<button on:click={addWeight} class="btn-weight">+</button>
 			</div>
 			
-			<button class="btn" on:click={startAnimation}><img src="/start.png" alt="Start Button" class="control-btn" /></button>
-			<button class="btn" on:click={resetAnimation}><img src="/reset.png" alt="Reset Button" class="control-btn" /></button>
+			<button class="btn" on:click={startAnimation}><img src={`${base}/start.png`} alt="Start Button" class="control-btn" /></button>
+			<button class="btn" on:click={resetAnimation}><img src={`${base}/reset.png`} alt="Reset Button" class="control-btn" /></button>
 
 		</div>
 
