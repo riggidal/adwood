@@ -39,6 +39,7 @@
 	let k_pos = 145; // коэфициент для перевода системы движения используя пиксели
 	let pos_left = 0; // Позиция левого блока
 	let pos_right = 0; // Позиция правого блока с перегрузком
+	let pos_init = 0;
 
 	// Инициализация скоростей блока
 	let velocity_left = 0.0;
@@ -79,10 +80,6 @@
 		requestAnimationFrame(updatePositions);
 	}
 
-	// Переводим высоту установки из метров в удобное пиксельное значение
-	function getRodHeightNormalize() {
-		return rodHeight * 1000 + 105;
-	}
 
 	// функция для добавления погрешности к значению
 	// num - значение
@@ -98,8 +95,8 @@
 	function resetAnimation() {
 		isAnimating = false;
 		isTimer = false;
-		pos_left = 0;
-		pos_right = 0;
+		pos_left = pos_init * 2.5;
+		pos_right = pos_init * 2.5
 		velocity_left = 0;
 		velocity_right = 0;
 		acceleration = 0;
@@ -133,7 +130,7 @@
 		pos_right += pos_right_sum * k_pos;
 
 		// Проверяем не достиг ли блок конца установки
-		// 50px это отступ сверху
+		// 75px это отступ сверху
 		if (pos_right >= 75) {
 			// Если достуг то отключаем тригеры анимации и таймера
 			isAnimating = false;
@@ -171,6 +168,20 @@
 		if (value < 0 && (mass_block + overload) > 0.091) { overload += value}
 	}
 
+	function addHeight() {
+		editHeight(1);
+	}
+
+	function remHeight() {
+		editHeight(-1);
+	}
+
+	function editHeight(value) {
+		if (value > 0 && (pos_init) < 30) { pos_init += value}
+		if (value < 0 && (pos_init) > 0) { pos_init += value}
+		resetAnimation();
+	}
+
 </script>
 
 <!-- HTML интерфейс -->
@@ -198,7 +209,7 @@
 			<img src={`${base}/rook.png`} alt="Carrot" class="rook" style="left: 20%; bottom: {5 + pos_right}%;" />
 			<img src={`${base}/ground.png`} alt="Ground" class="ground" id="ground-1" style="bottom: {pos_right}%;" />
 
-			<img src={`${base}/rook.png`} alt="Carrot" class="rook" id="carrot" style="right: 12%; top: {10 + pos_right}%;" />
+			<img src={`${base}/rook.png`} alt="Carrot" class="rook" id="carrot" style="right: {12 - overload * 250}%; width: {5 + overload * 250}%; top: {10 + pos_right}%;" />
 			<img src={`${base}/ground.png`} alt="Ground" class="ground" id="ground-2" style="top: {15 + pos_right}%;" />
 		</div>
 
@@ -214,13 +225,19 @@
 				<span id="weight">{(mass_block + overload).toFixed(3)}</span>
 				<button on:click={addWeight} class="btn-weight">+</button>
 			</div>
+
+			<div class="weight-adjuster">
+				<label for="weight">Высота:</label>
+				<button on:click={addHeight} class="btn-weight">-</button>
+				<span id="weight">{(30 - pos_init).toFixed(1)}</span>
+				<button on:click={remHeight} class="btn-weight">+</button>
+			</div>
 			
 			<button class="btn" on:click={startAnimation}><img src={`${base}/start.png`} alt="Start Button" class="control-btn" /></button>
 			<button class="btn" on:click={resetAnimation}><img src={`${base}/reset.png`} alt="Reset Button" class="control-btn" /></button>
 
 		</div>
 
-		<!-- Для тестирования -->
 		<div style="position: absolute; left: 56%; top: {mark_timer_pos_element}px; background-color: #fff; width: 50px; height: 5px;"></div>
 	</div>
 </body>
